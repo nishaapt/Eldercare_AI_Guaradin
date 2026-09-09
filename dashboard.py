@@ -280,7 +280,7 @@ if st.session_state.running:
 
     fall_detector = FallDetector()
     activity_detector = ActivityDetector()
-    risk_engine = RiskEngine()
+        FRAME_SKIP = 3     processed_frame_count = 0
 
     if not cap.isOpened():
         st.error(f"Could not open video: {VIDEO_PATH}")
