@@ -9,8 +9,7 @@ from ai.fall_detection import FallDetector
 from ai.activity_detection import ActivityDetector
 from risk.risk_engine import RiskEngine
 
-# Optional integrations — wrapped in try/except so the dashboard never
-# crashes just because email/SMS/call credentials aren't set up yet.
+
 try:
     from notify import send_fall_alert_email
 except Exception:
@@ -280,7 +279,8 @@ if st.session_state.running:
 
     fall_detector = FallDetector()
     activity_detector = ActivityDetector()
-        FRAME_SKIP = 3     processed_frame_count = 0
+              FRAME_SKIP = 3
+              processed_frame_count = 0
 
     if not cap.isOpened():
         st.error(f"Could not open video: {VIDEO_PATH}")
