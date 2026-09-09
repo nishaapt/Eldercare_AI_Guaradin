@@ -65,10 +65,10 @@ class RiskEngine:
             level = "CRITICAL"
 
 
-        emergency = (
-            score >= config.EMERGENCY_RISK_THRESHOLD
-            and inactivity_duration >= config.EMERGENCY_NO_MOVEMENT_SECONDS
-        )
+        emergency = fall_result.get("trigger_now", False) or (
+    score >= config.EMERGENCY_RISK_THRESHOLD
+    and inactivity_duration >= config.EMERGENCY_NO_MOVEMENT_SECONDS
+)
 
         if not reasons:
             reasons.append("Normal activity")
