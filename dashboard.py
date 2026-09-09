@@ -149,11 +149,11 @@ elder_status_placeholder = st.empty()
 
 col_buttons1, col_buttons2, col_buttons3 = st.columns(3)
 with col_buttons1:
-    start_button = st.button("▶ Start Monitoring", use_container_width=True)
+    start_button = st.button("▶ Start Monitoring", use_container_width="stretch")
 with col_buttons2:
-    reset_button = st.button("✓ Acknowledge Alert", use_container_width=True)
+    reset_button = st.button("✓ Acknowledge Alert", use_container_width="stretch")
 with col_buttons3:
-    call_button = st.button("📞 Call Caretaker", use_container_width=True)
+    call_button = st.button("📞 Call Caretaker", use_container_width="stretch")
 
 if reset_button:
     st.session_state.prev_emergency_state = False
