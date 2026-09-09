@@ -1,4 +1,4 @@
-   opencv-python
-   mediapipe
-   streamlit
-   twilio
+streamlit
+opencv-python-headless
+mediapipe
+twilio
