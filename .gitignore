@@ -1,0 +1,22 @@
+# Secrets — never commit this
+.env
+
+# Virtual environment
+.venv311/
+venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Database
+eldercare.db
+
+# IDE
+.idea/
+
+# OS
+.DS_Store
+
+secrets_config.py
