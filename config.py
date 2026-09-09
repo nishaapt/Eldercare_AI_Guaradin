@@ -7,7 +7,7 @@ FALL_HIP_SPEED_THRESHOLD = 0.9   # normalized hip-y units per second; above this
 # Activity recognition thresholds
 STANDING_ANGLE_MIN = 60          # degrees; above this = upright posture
 SITTING_ANGLE_MIN = 40           # between sitting/standing range
-MOVEMENT_THRESHOLD = 0.015       # normalized landmark movement per frame to count as "moving"
+MOVEMENT_THRESHOLD = 0.04       # normalized landmark movement per frame to count as "moving"
 NO_MOVEMENT_SECONDS = 5          # seconds of stillness before flagging NO_MOVEMENT
 
 # Video/camera settings
