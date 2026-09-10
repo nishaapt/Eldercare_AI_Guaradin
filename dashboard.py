@@ -3,8 +3,6 @@ import cv2
 import mediapipe as mp
 import time
 from datetime import datetime
-from collections import Counter
-from zoneinfo import ZoneInfo
 
 import config
 from ai.fall_detection import FallDetector
@@ -52,8 +50,9 @@ ROOMS = {
     },
 }
 
-mp_pose = mp.solutions.pose
-mp_drawing = mp.solutions.drawing_utils
+@st.cache_resource
+def load_pose_model():
+    return mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
 
 # ---------------------------------------------------------------------------
 # STYLING
@@ -145,25 +144,24 @@ if st.session_state.last_room != selected_room:
     st.session_state.running = False
     st.session_state.prev_emergency_state = False
     st.session_state.notified_this_alert = False
-    st.session_state.activity_history = []
     st.session_state.last_room = selected_room
 
 elder_status_placeholder = st.empty()
 
 col_buttons1, col_buttons2, col_buttons3 = st.columns(3)
 with col_buttons1:
-    start_button = st.button("▶ Start Monitoring", width="stretch")
+    start_button = st.button("▶ Start Monitoring", use_container_width=True)
 with col_buttons2:
-    reset_button = st.button("✓ Acknowledge Alert", width="stretch")
+    reset_button = st.button("✓ Acknowledge Alert", use_container_width=True)
 with col_buttons3:
-    call_button = st.button("📞 Call Caretaker", width="stretch")
+    call_button = st.button("📞 Call Caretaker", use_container_width=True)
 
 if reset_button:
     st.session_state.prev_emergency_state = False
     st.session_state.notified_this_alert = False
 
 if call_button:
-    now_str = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%I:%M:%S %p")
+    now_str = datetime.now().strftime("%I:%M:%S %p")
     if send_sms_alert is not None:
         try:
             send_sms_alert(ELDER_NAME, ELDER_ROOM, now_str)
@@ -278,14 +276,12 @@ if not st.session_state.running:
     render_alert_history()
 
 if st.session_state.running:
-    pose = mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5)
+    pose = load_pose_model()
     cap = cv2.VideoCapture(VIDEO_PATH)
 
     fall_detector = FallDetector()
     activity_detector = ActivityDetector()
     risk_engine = RiskEngine()
-    FRAME_SKIP = 3
-    frame_count = 0
 
     if not cap.isOpened():
         st.error(f"Could not open video: {VIDEO_PATH}")
@@ -304,27 +300,15 @@ if st.session_state.running:
             if not ret:
                 break
 
-            frame_count += 1
-            if frame_count % FRAME_SKIP != 0:
-                continue
-
             rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             results = pose.process(rgb_frame)
 
             if results.pose_landmarks:
                 landmarks = results.pose_landmarks.landmark
 
-                fall_result = fall_detector.detect_fall(landmarks, mp_pose, video_fps / FRAME_SKIP)
+                fall_result = fall_detector.detect_fall(landmarks, mp_pose, video_fps)
                 activity_result = activity_detector.detect_activity(landmarks, mp_pose)
-                activity_history = st.session_state.get('activity_history', [])
-                activity_history.append(activity_result['activity'])
-                st.session_state.activity_history = activity_history[-5:]
-                activity_result['activity'] = Counter(st.session_state.activity_history).most_common(1)[0][0]
-
                 risk_result = risk_engine.assess(fall_result, activity_result)
-                if fall_result['trigger_now']:
-                    risk_result['emergency'] = True
-                    risk_result['reason'] = ['Fast drop and horizontal posture detected']
 
                 mp_drawing.draw_landmarks(
                     frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,
@@ -342,7 +326,7 @@ if st.session_state.running:
 
             # Fire alerts (email/SMS/call) only on a NEW emergency, not every frame it stays true
             if risk_result["emergency"] and not st.session_state.prev_emergency_state:
-                now_str = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%I:%M:%S %p")
+                now_str = datetime.now().strftime("%I:%M:%S %p")
                 st.session_state.alert_count += 1
                 st.session_state.last_detection = now_str
                 st.session_state.alert_history.insert(0, now_str)
@@ -375,7 +359,7 @@ if st.session_state.running:
             render_alert_history()
 
             frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            video_placeholder.image(frame_rgb, channels="RGB", width="stretch")
+            video_placeholder.image(frame_rgb, channels="RGB", use_container_width=True)
             camera_info_placeholder.markdown(
                 '<div class="camera-info"><span>📹 Camera</span><span>🟢 Camera Online</span><span>⏱ Monitoring Active</span></div>',
                 unsafe_allow_html=True)
@@ -390,7 +374,7 @@ if st.session_state.running:
             Reasons: {', '.join(risk_result['reason'])}
             """)
 
-            time.sleep(FRAME_SKIP / video_fps)
+            time.sleep(1 / video_fps)
 
         cap.release()
         st.session_state.running = False
