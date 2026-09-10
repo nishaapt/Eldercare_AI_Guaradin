@@ -387,3 +387,17 @@ if st.session_state.running:
                 unsafe_allow_html=True)
 
             tech_details_placeholder.markdown(f"""
+            Risk score: {risk_result['risk_score']}/100 ({risk_result['risk_level']})  
+            Emergency: {risk_result['emergency']}  
+            Activity: {activity_result['activity']} (confidence {activity_result['confidence']})  
+            Fall confidence: {fall_result['confidence']}  
+            Body angle: {fall_result['body_angle']}° | Hip drop speed: {fall_result['hip_drop_speed']}  
+            Inactivity: {activity_result['inactivity_duration']}s  
+            Reasons: {', '.join(risk_result['reason'])}
+            """)
+
+            time.sleep(FRAME_SKIP / video_fps)
+
+        cap.release()
+        st.session_state.running = False
+        st.info('Video ended. Click "Start Monitoring" to replay.')
